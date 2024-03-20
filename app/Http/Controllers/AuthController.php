@@ -2,9 +2,87 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-
+use App\Models\User;
 class AuthController extends Controller
 {
-    //
+
+
+    public function login(Request $request){
+        $credentials=$request->only('email','password');
+
+        try {
+            if(Auth::attempt($credentials)){
+
+                return view('user/dashboard')->with('success', "Welcome".Auth::user()->name." to the Pro-MS ");
+            }
+            else {
+                return back()->withErrors('Error', 'You have to enter correct details or register to the system.');
+            }
+ 
+        } catch (\Throwable) {
+
+           return back()->withErrors('Error','An Unexpected error. Plese try again');
+        }
+    }
+
+
+
+    public function store(Request $request)
+    {
+        $validator=Validator::make($request->all(),[
+            'name'=>['required','string','max:255'],
+            'email'=>['required','email','unique'],
+            'passowrd'=>['required','confirmed','min:8','regex:/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/',],
+            'contact_no'=>'required',
+
+    ]);
+
+    $validationFailsError=[
+        'name.required'=>'Name field is required.',
+        'name.string'=>'Name must be a string.',
+        'name.max'=>'Maximum allocation for name is 255 characters only.',
+        'email.required'=>'Email field is required.',
+        'email.email'=>'Email must be a valid email address.',
+        'email.unique'=>'This email has already in the system. Add another email or login to the system.',
+        'password.required'=>'Password field is required.',
+        'password.confirmed'=>'Password and Confirm password must be same.',
+        'password.min'=>'Password must contain at least 8 characters',
+        'passowrd.regex'=>'Password must contain at least one lowercase letter, one uppercase letter and one number',
+        'contact_no'=>'Contact field is required.',
+
+    ];
+
+    $validator->setCustomMessages($validationFailsError);
+
+    if ($validator->fails()) {
+        return back()->withErrors($validator)->withInput();
+    }
+
+    try {
+            $userData = $request->all();
+
+            $user=User::create($userData);
+
+            Auth::login($user);
+
+            return route('customer.dashboard');
+            
+    }
+     catch (\Throwable) {
+        return back()->withErrors('Error','Unexpected Error. Try again to register')->withInput();
+    }
+
+    }
+
+
+
+    //for logout the user
+    public function logout() {
+        
+        Auth::logout();
+        return route('user.login');
+    }
 }
