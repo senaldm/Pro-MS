@@ -40,14 +40,15 @@ class AuthController extends Controller
                     
                 }
                 else if (!Auth::attempt(['password' => $request->password])) {
+                    
                    return back()->withErrors(['password'=>'Your password is incorrect. Check again']);
                 }
                 
             }
  
         } catch (\Throwable) {
-
-           return back()->withErrors(['Error'=>'An Unexpected error. Plese try again']);
+             session()->put('database-error','Unexpected Error. Try again to register');
+           return back();
         }
     }
 
@@ -104,7 +105,8 @@ class AuthController extends Controller
     }
      catch (\Throwable) {
 
-        return back()->withErrors('Error','Unexpected Error. Try again to register')->withInput();
+        session()->put('database-error','Unexpected Error. Try again to register');
+        return back()->withInput();
     }
 
     }
@@ -113,8 +115,11 @@ class AuthController extends Controller
 
     //for logout the user
     public function logout() {
-        
+       
+        session()->flush();
+
         Auth::logout();
+        
         return redirect()->route('user.login.form');
     }
 }

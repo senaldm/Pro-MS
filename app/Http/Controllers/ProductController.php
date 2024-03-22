@@ -9,64 +9,24 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-
-     */
-    public function index()
-    {
-        if(Auth::check())
-        //find specific users' products
-        // if(Auth::user()->id==$id)
-        {
-        try {
-            $id=Auth::user()->id;
-            $products = Product::where('owner_id', $id)->get();
-            echo "sfgsdfgdgb";
-            if($products->count()>0){
-                return view('product/viewProduct', compact('products'));
-            }
-            else {
-
-                return view('product/viewProduct')->with('message','Opps! You don\'t have any products yet. Add products to view');
-            }
-
-        } catch (\Throwable) {
-
-             session()->put('Error','Opps! An Unexpected Error.Please try again');
-            return back()->withErrors(['Error'=>'Opps! An Unexpected Error.Please try again']);
-        }
-    }
-    else {
-        return back()->withErrors(['Error'=>'Sorry! You are not permitted with this user ID.']);
-    }
-        
-
-    }
-
-
-    //show all products
-
-    public function showAll(){
-
-        $products=Product::all();
-
-        return view('customer.viewProducts',compact('products'));
-    }
-
-    /**
-     * Show the form for creating a new resource.
    
-     */
+// Show the form for creating a new resource.
+
     public function create()
-    {
-        return view('product/addProduct');
+    { 
+        if (Auth::check()) {
+          return view('product/addProduct');
+        }
+
+        else {
+            
+            return redirect()->route('user.login.form');
+        }
+        
     }
 
-    /**
-     * Store a newly created resource in storage.
-  
-     */
+// Store a newly created resource in storage.
+
     public function store(Request $request)
     {
         $validator =Validator::make($request->all(),[
@@ -95,11 +55,8 @@ class ProductController extends Controller
 
             $directory =  Auth::user()->id;
 
-            // if (!Storage::exists('/public/product'.$directory)) {
-            //     Storage::makeDirectory('/public/product'.$directory, 0755, true);
-            // }
+            $imageName = time() . '_' . $request->file('image')->getClientOriginalName();
 
-            $imageName=$request->file('image')->hashName();
             $request->file('image')->storeAs('/public/images/products/'.$directory,$imageName);
             
 
@@ -112,62 +69,47 @@ class ProductController extends Controller
             ]);
 
             if($product){
+
+                session()->put('store-success','Product entered successfully.');
+
                 return redirect()->route('customer.dashboard');
             }
+
+
             else {
-                return back()->withErrors('Error', 'Sorry! We are unable to store the product. Try again');
+                session()->put('store-Error', 'Sorry! We are unable to store the product. Try again');
+
+                return back();
             }
 
         } 
         
         catch (\Throwable) {
-            
-            return back()->withErrors('error', 'Opps!! An unexpected error occurs.Try again');
+
+            session()->put('database-error','Uncaughted Error. Try again.');
+
+            return back();
         }
-        
-        
+         
     }
 
-    /**
-     * Display the specified resource.
 
-     */
-    public function show($id)
-    {
-        try {
-        
-            $product = Product::where('product_id', $id)->get();
-            if ($product->count()>0) {
-                return view('product.show-product', compact('product'));
-            }
-            else {
-                return back()->withErrors('error','Sorry! Couldn\'t find the product. Try again. ');
-            }
-           
-        } 
-        
-        catch (\Throwable ) {
-            return back()->withErrors('Error','An Unexpected error occurs. try again.');
-        }
-       
-    }
+   
+// Show the form for editing the specified resource.
 
-    /**
-     * Show the form for editing the specified resource.
-
-     */
     public function edit($id)
     {
-        $product=Product::findByID($id);
-        return view('customer/edit-product',compact('product'));
+        $product=Product::find($id);
+        return view('product/updateProduct',compact('product'));
     }
 
-    /**
-     * Update the specified resource in storage.
 
-     */
-    public function update(Request $request, $existImage)
+
+    // Update the specified resource in storage.
+
+    public function update(Request $request,$id)
     {
+
         $validator = Validator::make($request->all(), [
             'name' => ['required', 'string'],
             'description' => 'required',
@@ -191,62 +133,80 @@ class ProductController extends Controller
             return back()->withErrors($validator)->withInput();
         }
         try {
+          
+            //find the existing image and delete it to save storage
 
-            $directory = '/public/product/' . Auth::user()->id;
+            $product=Product::find($id);
+            $existImage=$product->image;
+            $directory = '/public/images/products/'.Auth::user()->id;
 
-            Storage::delete($existImage);
-            $imagePath = $request->file('image')->storeAs(
-                $directory,
-                $request->file('image')->hashName()
-            );
-            $id=1;
+            $success=Storage::delete($directory.'/'.$existImage);
 
+            //save new image on storage
+            $imageName = time() . '_' . $request->file('image')->getClientOriginalName();
+            $request->file('image')->storeAs($directory,$imageName);
+            
+            
             $productData=$request->all();
-            $productData['image']=$imagePath;
-            $product=Product::findorFail($id);
-            $product->update($productData);
-            // $product = Product::create([
-            //     'name' => $request->input('name'),
-            //     'description' => $request->input('description'),
-            //     'price' => $request->input('price'),
-            //     'image' => $imagePath,
-            // ]);
+            $productData['image']=$imageName;
 
-            $products = Product::where('customer_id', Auth::user()->id)->get();
-            if ($product) {
-                return view('customer/dashboard', compact('products'))->with('success','Product has been updated successfully.');
-            } else {
-                return back()->withErrors('Error', 'Sorry! We are unable to update the product. Try again');
+            $update=$product->update($productData);
+
+            $products = Product::where('owner_id', Auth::user()->id)->get();
+
+
+            if ($update) {
+
+                 session()->put('update-success','Your product update successfully.');
+
+                return view('customer/dashboard', compact('products'));
+            } 
+            
+            
+            else {
+
+                session()->put('update-error','Sorry! couldn\'t to update the product details. Try again.');
+                return back();
             }
-        } catch (\Throwable) {
 
-            return back()->withErrors('error', 'Opps!! An unexpected error occurs.Try again');
+
+        } 
+        
+        catch (\Throwable) {
+     
+             session()->put('database-error','Uncaughted Error. Try again.');
+            return back();
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
 
-     */
+
+// Remove the specified resource from storage.
+
     public function destroy($id)
     {
+
+
         try {
-            $product = Product::find($id);
+            $product=Product::find($id);
             if ($product) {
                 $product->delete();
-                session()->put('delete-seccess','Your product is deleted successfully.');
-                $products = Product::where('owner_id', Auth::user()->id)->all();
+                session()->put('delete-success','Your product is deleted successfully.');
+                $products = Product::where('owner_id', Auth::user()->id)->get();
                 return view('customer/dashboard', compact('products'));
                 
             
         }
         else {
             session()->put('delete-error','Your product is already deleted');
+
             return back();
         }
     }
-         catch (\Throwable ) {
-            return back()->withErrors('error', 'Opps!! An unexpected error occurs.');
+         catch (\Throwable) {
+    
+            session()->put('database-error','Opps!! An unexpected error occurs. Try again.');
+            return back();
         }
      
     }

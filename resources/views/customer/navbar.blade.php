@@ -1,6 +1,6 @@
 
 @extends('user.base')
-@section('content')
+
 <nav class="navbar navbar-expand-lg navbar-light bg-dark bg-body-tertiary">
  
     <div class="container-fluid">
@@ -15,9 +15,19 @@
                 <li class="nav-item">
                 <a class="nav-link text-white" href="{{route('customer.dashboard')}}">Dashboard</a>
                 </li>
+                @if(Auth::check())
                 <li class="nav-item">
+                
                 <a class="nav-link text-white" href="{{route('customer.product.create-form')}}">Create Product</a>
+                
+             
                 </li>
+                   @else
+                     <li class="nav-item">
+                    <a class="nav-link text-white" href="{{route('user.login.form')}}">Create Product</a>
+                    </li>
+                
+                @endif
               
             </ul>
         </div>
@@ -54,4 +64,5 @@
 
 
 </nav>
+
 @yield('content')

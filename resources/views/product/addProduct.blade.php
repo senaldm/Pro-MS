@@ -2,6 +2,26 @@
 @extends('user.base')
 @section('content')
 
+<div class="col-sm-12">
+
+    @if (session()->get('store-error'))
+    
+        <div class="alert alert-danger">
+            {{ session()->get('store-error')}}
+            
+        </div>
+        <?php session()->forget('store-error')?>
+
+    @elseif (session()->get('database-error'))
+  
+      <div class="alert alert-danger">
+          {{ session()->get('database-error')}}
+          
+      </div>
+      <?php session()->forget('database-error')?>
+      
+    @endif
+  </div>
 <div class="mask d-flex align-items-center h-100 gradient-custom-3">
     <div class="container h-100">
       <div class="row d-flex justify-content-center align-items-center h-100">

@@ -15,13 +15,13 @@ class UserController extends Controller
     public function index()
     {
          if(Auth::check())
-        //find specific users' products
-        // if(Auth::user()->id==$id)
+     
         {
+         
         try {
             $id=Auth::user()->id;
             $products = Product::where('owner_id', $id)->get();
-            
+      
             return view('customer/dashboard', compact('products'));
             
         } catch (\Throwable) {
@@ -33,7 +33,8 @@ class UserController extends Controller
 
 
     else {
-        return view('customer/dashboard');
+        $products=[[]];
+        return view('customer/dashboard',compact('products'));
     }
         
     }

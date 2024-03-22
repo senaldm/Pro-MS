@@ -38,7 +38,7 @@ Route::prefix('auth/user')->group(fn()=>[
 Route::prefix('user')->group(fn()=>[
 
     Route::get('/dashboard',[UserController::class,'index'])->name('customer.dashboard'),
-    Route::get('login-form',[AuthController::class,'showLoginPage'])->name('user.login.form'),
+    Route::get('/login-form',[AuthController::class,'showLoginPage'])->name('user.login.form'),
     Route::get('/register-form',[AuthController::class,'showRegisterForm'])->name('user.register.form'),
 ]);
 
@@ -49,9 +49,7 @@ Route::prefix('customer/product')->middleware(['auth'])->group(fn()=>[
         Route::get('/create-product-form',[ProductController::class,'create'])->name('customer.product.create-form'),
         Route::post('/create-product',[ProductController::class,'store'])->name('customer.product.store'),
         Route::post('/update-product/{id}',[ProductController::class,'update'])->name('customer.product.update'),
-        Route::get('/delete-product/{id}',[ProductController::class,'update'])->name('customer.product.destroy'),
-        Route::get('/view-products',[ProductController::class,'index'])->name('customer.product.index'),
-        Route::get('/product/{id}',[ProductController::class,'show'])->name('customer.product.show'),
-        Route::get('update-product-form',[ProductController::class,'edit'])->name('customer.product.edit-form'),
+        Route::get('/delete-product/{id}',[ProductController::class,'destroy'])->name('customer.product.destroy'),
+        Route::get('update-product-form/{id}',[ProductController::class,'edit'])->name('customer.product.edit-form'),
 
 ]);
