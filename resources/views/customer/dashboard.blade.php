@@ -41,6 +41,7 @@
         @endif
 
     </div>
+    
     <div class="p-5 text-center bg-body-tertiary">
         <h1 class="mb-3">Your Products</h1>
 
@@ -68,7 +69,7 @@
                                             <div class="card-body">
                                                 <h5 class="card-title">{{ $product->name }}</h5>
                                                 <p class="card-text">{{ $product->description }}</p>
-                                                <p class="card-text">{{ $product->price }}</p>
+                                                <p class="card-text">Rs.{{ $product->price }}</p>
                                             </div>
                                         </div>
 

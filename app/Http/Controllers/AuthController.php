@@ -31,7 +31,7 @@ class AuthController extends Controller
         try {
             if(Auth::attempt($credentials)){
 
-                return redirect()->route('customer.dashboard')->with('success', "Welcome".Auth::user()->name." to the Pro-MS ");
+                return redirect()->route('customer.dashboard');
             }
             else {
                 if (!Auth::attempt(['email' => $request->email])) {
