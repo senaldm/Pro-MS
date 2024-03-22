@@ -1,5 +1,16 @@
 @extends('user.base')
 
+<div class="col-sm-12">
+        
+    @if (session()->get('database-error'))
+    
+        <div class="alert alert-danger">
+            {{ session()->get('database-error')}}
+            
+        </div>
+        <?php session()->forget('database-error')?>
+    @endif
+</div>
 
 
 <div class="mask d-flex align-items-center h-100 gradient-custom-3">

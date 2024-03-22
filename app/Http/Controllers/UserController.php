@@ -26,8 +26,8 @@ class UserController extends Controller
             
         } catch (\Throwable) {
 
-             session()->put('Error','Opps! An Unexpected Error.Please try again');
-            return back()->withErrors(['Error'=>'Opps! An Unexpected Error.Please try again']);
+             session()->put('database-error','Opps! An Unexpected Error.Please try again');
+            return back();
         }
     }
 
