@@ -29,7 +29,7 @@ Route::get('/',function(){
 Route::prefix('auth/user')->group(fn()=>[
 
     Route::post('/registration',[AuthController::class,'store'])->name('user.registration'),
-    Route::get('/logout',[AuthController::class,'logout'])->middleware(['auth'])->name('user.logout')->middleware(['auth']),
+    Route::get('/logout',[AuthController::class,'logout'])->middleware(['auth'])->middleware(['auth'])->name('user.logout'),
     Route::post('/login',[AuthController::class,'login'])->name('user.login'),
 ]);
 
@@ -49,8 +49,8 @@ Route::prefix('customer/product')->middleware(['auth'])->group(fn()=>[
         Route::get('/create-product-form',[ProductController::class,'create'])->name('customer.product.create-form'),
         Route::post('/create-product',[ProductController::class,'store'])->name('customer.product.store'),
         Route::post('/update-product/{id}',[ProductController::class,'update'])->name('customer.product.update'),
-        Route::post('/delete-product/{id}',[ProductController::class,'update'])->name('customer.product.destroy'),
-        Route::get('/view-products/{id}',[ProductController::class,'index'])->name('customer.product.index'),
+        Route::get('/delete-product/{id}',[ProductController::class,'update'])->name('customer.product.destroy'),
+        Route::get('/view-products',[ProductController::class,'index'])->name('customer.product.index'),
         Route::get('/product/{id}',[ProductController::class,'show'])->name('customer.product.show'),
         Route::get('update-product-form',[ProductController::class,'edit'])->name('customer.product.edit-form'),
 

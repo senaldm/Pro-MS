@@ -31,7 +31,7 @@ class AuthController extends Controller
         try {
             if(Auth::attempt($credentials)){
 
-                return view('customer/dashboard')->with('success', "Welcome".Auth::user()->name." to the Pro-MS ");
+                return redirect()->route('customer.dashboard')->with('success', "Welcome".Auth::user()->name." to the Pro-MS ");
             }
             else {
                 if (!Auth::attempt(['email' => $request->email])) {
@@ -99,7 +99,7 @@ class AuthController extends Controller
 
             Auth::login($user);
         
-            return view('customer/dashboard');
+            return redirect()->route('customer.dashboard');
             
     }
      catch (\Throwable) {
@@ -115,6 +115,6 @@ class AuthController extends Controller
     public function logout() {
         
         Auth::logout();
-        return route('user.login');
+        return redirect()->route('user.login.form');
     }
 }

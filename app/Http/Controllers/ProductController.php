@@ -13,32 +13,45 @@ class ProductController extends Controller
      * Display a listing of the resource.
 
      */
-    public function index($id)
+    public function index()
     {
-
+        if(Auth::check())
         //find specific users' products
-        if(Auth::user()->id==$id)
+        // if(Auth::user()->id==$id)
         {
         try {
-
+            $id=Auth::user()->id;
             $products = Product::where('owner_id', $id)->get();
+            echo "sfgsdfgdgb";
             if($products->count()>0){
-                return view('product/products', compact('products'));
+                return view('product/viewProduct', compact('products'));
             }
             else {
-                return view('product/products')->with('message','Opps! You don\'t have any products yet. Add products to view');
+
+                return view('product/viewProduct')->with('message','Opps! You don\'t have any products yet. Add products to view');
             }
 
         } catch (\Throwable) {
 
-            return back()->withErrors('Error','Opps! An Unexpected Error.Please try again');
+             session()->put('Error','Opps! An Unexpected Error.Please try again');
+            return back()->withErrors(['Error'=>'Opps! An Unexpected Error.Please try again']);
         }
     }
     else {
-        return back()->withErrors('Error','Sorry! You are not permitted with this user ID.');
+        return back()->withErrors(['Error'=>'Sorry! You are not permitted with this user ID.']);
     }
         
 
+    }
+
+
+    //show all products
+
+    public function showAll(){
+
+        $products=Product::all();
+
+        return view('customer.viewProducts',compact('products'));
     }
 
     /**
@@ -80,23 +93,22 @@ class ProductController extends Controller
         
         try {
 
-            $directory = '/public/product/' . Auth::user()->id;
+            $directory =  Auth::user()->id;
 
-            if (!Storage::exists($directory)) {
-                Storage::makeDirectory($directory, 0755, true);
-            }
+            // if (!Storage::exists('/public/product'.$directory)) {
+            //     Storage::makeDirectory('/public/product'.$directory, 0755, true);
+            // }
 
-            $imagePath = $request->file('image')->storeAs(
-                $directory,
-                $request->file('image')->hashName()
-            );
+            $imageName=$request->file('image')->hashName();
+            $request->file('image')->storeAs('/public/images/products/'.$directory,$imageName);
+            
 
             $product = Product::create([
                 'name' => $request->input('name'),
                 'owner_id'=>Auth::user()->id,
                 'description' => $request->input('description'),
                 'price' => $request->input('price'),
-                'image' => $imagePath,
+                'image' => $imageName,
             ]);
 
             if($product){
@@ -187,13 +199,18 @@ class ProductController extends Controller
                 $directory,
                 $request->file('image')->hashName()
             );
+            $id=1;
 
-            $product = Product::create([
-                'name' => $request->input('name'),
-                'description' => $request->input('description'),
-                'price' => $request->input('price'),
-                'image' => $imagePath,
-            ]);
+            $productData=$request->all();
+            $productData['image']=$imagePath;
+            $product=Product::findorFail($id);
+            $product->update($productData);
+            // $product = Product::create([
+            //     'name' => $request->input('name'),
+            //     'description' => $request->input('description'),
+            //     'price' => $request->input('price'),
+            //     'image' => $imagePath,
+            // ]);
 
             $products = Product::where('customer_id', Auth::user()->id)->get();
             if ($product) {
@@ -217,13 +234,15 @@ class ProductController extends Controller
             $product = Product::find($id);
             if ($product) {
                 $product->delete();
-                $products = Product::where('owner_id', Auth::user()->id)->get();
-                return view('product/products', compact('products'));
-        
+                session()->put('delete-seccess','Your product is deleted successfully.');
+                $products = Product::where('owner_id', Auth::user()->id)->all();
+                return view('customer/dashboard', compact('products'));
+                
             
         }
         else {
-            return back()->withErrors('message','Sorry! We couldn\'t to remove the value. Try again');
+            session()->put('delete-error','Your product is already deleted');
+            return back();
         }
     }
          catch (\Throwable ) {

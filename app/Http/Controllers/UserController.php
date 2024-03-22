@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
+use App\Models\Product;
 class UserController extends Controller
 {
     /**
@@ -13,7 +14,28 @@ class UserController extends Controller
      */
     public function index()
     {
+         if(Auth::check())
+        //find specific users' products
+        // if(Auth::user()->id==$id)
+        {
+        try {
+            $id=Auth::user()->id;
+            $products = Product::where('owner_id', $id)->get();
+            
+            return view('customer/dashboard', compact('products'));
+            
+        } catch (\Throwable) {
+
+             session()->put('Error','Opps! An Unexpected Error.Please try again');
+            return back()->withErrors(['Error'=>'Opps! An Unexpected Error.Please try again']);
+        }
+    }
+
+
+    else {
         return view('customer/dashboard');
+    }
+        
     }
 
    
